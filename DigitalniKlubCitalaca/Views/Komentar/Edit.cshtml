@@ -1,0 +1,69 @@
+﻿@model DigitalniKlubCitalaca.Models.Komentar
+
+@{
+    ViewData["Title"] = "Uredi komentar";
+}
+
+<section class="section">
+    <div style="max-width:760px; margin:auto;">
+
+        <div style="margin-bottom:28px;">
+            <h1 class="section-title">Uredi komentar</h1>
+            <p style="color:#8a8a8a; margin-top:-10px;">
+                Izmijenite tekst komentara i njegove podatke.
+            </p>
+        </div>
+
+        <div class="card" style="padding:30px; border-radius:28px;">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <input type="hidden" asp-for="KomentarId" />
+
+                <label asp-for="Tekst" style="font-weight:600;">Komentar</label>
+                <textarea asp-for="Tekst"
+                          rows="5"
+                          placeholder="Izmijenite komentar..."></textarea>
+                <span asp-validation-for="Tekst" class="text-danger"></span>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                    <div>
+                        <label asp-for="SadrzajId">Sadržaj ID</label>
+                        <input asp-for="SadrzajId" type="number" />
+                    </div>
+
+                    <div>
+                        <label asp-for="AutorId">Autor ID</label>
+                        <input asp-for="AutorId" />
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                    <div>
+                        <label asp-for="DatumKomentara">Datum</label>
+                        <input asp-for="DatumKomentara" type="text" placeholder="2026-05-25 12:30" />
+                    </div>
+
+                    <div>
+                        <label asp-for="StatusKomentara">Status</label>
+                        <select asp-for="StatusKomentara"
+                                asp-items="Html.GetEnumSelectList<DigitalniKlubCitalaca.Models.StatusKomentara>()">
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:28px;">
+                    <a class="btn-dark" asp-action="Index">Nazad</a>
+
+                    <button type="submit" class="btn-pink">
+                        Sačuvaj izmjene
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,73 @@
+﻿@model DigitalniKlubCitalaca.Models.SadrzajGrupe
+
+@{
+    ViewData["Title"] = "Uredi objavu";
+}
+
+<section class="section">
+    <div style="max-width:700px; margin:auto;">
+
+        <div style="margin-bottom:30px;">
+            <h1 class="section-title">Uredi objavu</h1>
+
+            <p style="color:#8a8a8a; margin-top:-10px;">
+                Izmijenite podatke postojeće objave.
+            </p>
+        </div>
+
+        <div class="card form-box">
+            <form asp-action="Edit">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <input type="hidden" asp-for="SadrzajId" />
+
+                <label asp-for="AutorId">Autor</label>
+                <select asp-for="AutorId" asp-items="ViewBag.AutorId"></select>
+
+                <label asp-for="GrupaId">Čitalačka grupa</label>
+                <select asp-for="GrupaId" asp-items="ViewBag.GrupaId"></select>
+
+                <label asp-for="DatumObjave">Datum objave</label>
+                <input asp-for="DatumObjave" />
+
+                <label asp-for="Naslov">Naslov</label>
+                <input asp-for="Naslov" />
+
+                <label asp-for="Opis">Opis</label>
+                <textarea asp-for="Opis" rows="5"></textarea>
+
+                <label asp-for="Link">Link</label>
+                <input asp-for="Link" />
+
+                <label asp-for="TipSadrzaja">Tip sadržaja</label>
+                <select asp-for="TipSadrzaja"
+                        asp-items="Html.GetEnumSelectList<DigitalniKlubCitalaca.Models.TipSadrzaja>()">
+                </select>
+
+                <label asp-for="StatusSadrzaja">Status sadržaja</label>
+                <select asp-for="StatusSadrzaja"
+                        asp-items="Html.GetEnumSelectList<DigitalniKlubCitalaca.Models.StatusSadrzaja>()">
+                </select>
+
+                <div style="display:flex; gap:12px; margin-top:28px;">
+
+                    <button type="submit" class="btn-pink">
+                        Sačuvaj izmjene
+                    </button>
+
+                    <a class="btn-dark" asp-action="Index">
+                        Nazad
+                    </a>
+
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

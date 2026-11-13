@@ -1,0 +1,70 @@
+﻿@model DigitalniKlubCitalaca.Models.SadrzajGrupe
+
+@{
+    ViewData["Title"] = "Nova objava";
+}
+
+<section class="section">
+    <div style="max-width:700px; margin:auto;">
+
+        <div style="margin-bottom:30px;">
+            <h1 class="section-title">Nova objava</h1>
+            <p style="color:#8a8a8a; margin-top:-10px;">
+                Kreirajte novi sadržaj za čitalačku grupu.
+            </p>
+        </div>
+
+        <div class="card form-box">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <label asp-for="AutorId">Autor</label>
+                <select asp-for="AutorId" asp-items="ViewBag.AutorId"></select>
+                <span asp-validation-for="AutorId" class="text-danger"></span>
+
+                <label asp-for="GrupaId">Čitalačka grupa</label>
+                <select asp-for="GrupaId" asp-items="ViewBag.GrupaId"></select>
+                <span asp-validation-for="GrupaId" class="text-danger"></span>
+
+                <label asp-for="Naslov">Naslov</label>
+                <input asp-for="Naslov" placeholder="Unesite naslov objave..." />
+                <span asp-validation-for="Naslov" class="text-danger"></span>
+
+                <label asp-for="Opis">Opis</label>
+                <textarea asp-for="Opis" rows="5" placeholder="Napišite opis objave..."></textarea>
+                <span asp-validation-for="Opis" class="text-danger"></span>
+
+                <label asp-for="Link">Link</label>
+                <input asp-for="Link" placeholder="https://..." />
+                <span asp-validation-for="Link" class="text-danger"></span>
+
+                <label asp-for="TipSadrzaja">Tip sadržaja</label>
+                <select asp-for="TipSadrzaja"
+                        asp-items="Html.GetEnumSelectList<DigitalniKlubCitalaca.Models.TipSadrzaja>()">
+                </select>
+                <span asp-validation-for="TipSadrzaja" class="text-danger"></span>
+
+                <label asp-for="StatusSadrzaja">Status sadržaja</label>
+                <select asp-for="StatusSadrzaja"
+                        asp-items="Html.GetEnumSelectList<DigitalniKlubCitalaca.Models.StatusSadrzaja>()">
+                </select>
+                <span asp-validation-for="StatusSadrzaja" class="text-danger"></span>
+
+                <div style="display:flex; gap:12px; margin-top:28px;">
+                    <button type="submit" class="btn-pink">
+                        Objavi sadržaj
+                    </button>
+
+                    <a class="btn-dark" asp-action="Index">
+                        Nazad
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

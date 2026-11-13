@@ -1,0 +1,84 @@
+﻿@model DigitalniKlubCitalaca.Models.CitalackaGrupa
+
+@{
+    ViewData["Title"] = "Uredi grupu";
+}
+
+<section class="section">
+
+    <div style="max-width:700px; margin:auto;">
+
+        <div style="margin-bottom:30px;">
+            <h1 class="section-title">Uredi čitalačku grupu</h1>
+
+            <p style="color:#8a8a8a; margin-top:-10px;">
+                Izmijenite podatke postojeće grupe.
+            </p>
+        </div>
+
+        <div class="card form-box">
+
+            <form asp-action="Edit">
+
+                <input type="hidden" asp-for="GrupaId" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <label asp-for="Naziv">Naziv grupe</label>
+                <input asp-for="Naziv" />
+                <span asp-validation-for="Naziv" class="text-danger"></span>
+
+                <label asp-for="Opis">Opis</label>
+                <textarea asp-for="Opis" rows="5"></textarea>
+                <span asp-validation-for="Opis" class="text-danger"></span>
+
+                <label asp-for="Zanr">Žanr</label>
+                <input asp-for="Zanr" />
+                <span asp-validation-for="Zanr" class="text-danger"></span>
+
+                <label asp-for="Regija">Regija</label>
+                <input asp-for="Regija" />
+                <span asp-validation-for="Regija" class="text-danger"></span>
+
+                <label asp-for="Grad">Grad</label>
+                <input asp-for="Grad" />
+                <span asp-validation-for="Grad" class="text-danger"></span>
+
+                <label asp-for="MaksimalanBrojClanova">Maksimalan broj članova</label>
+                <input asp-for="MaksimalanBrojClanova" />
+                <span asp-validation-for="MaksimalanBrojClanova" class="text-danger"></span>
+
+                <label asp-for="TipGrupe">Tip grupe</label>
+<label asp-for="TipGrupe">Tip grupe</label>
+<select asp-for="TipGrupe">
+    <option value="">Odaberite tip grupe</option>
+    <option value="javna">javna</option>
+    <option value="privatna">privatna</option>
+</select>
+<span asp-validation-for="TipGrupe" class="text-danger"></span>
+
+                <input type="hidden" asp-for="DatumKreiranja" />
+
+                <div style="display:flex; gap:12px; margin-top:30px;">
+
+                    <button type="submit" class="btn-pink">
+                        Sačuvaj izmjene
+                    </button>
+
+                    <a asp-action="Index" class="btn-dark">
+                        Nazad
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

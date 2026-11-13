@@ -1,0 +1,38 @@
+﻿@model DigitalniKlubCitalaca.Models.Komentar
+
+@{
+    ViewData["Title"] = "Detalji komentara";
+}
+
+<section class="section">
+    <div style="max-width:760px; margin:auto;">
+        <h1 class="section-title">Detalji komentara</h1>
+
+        <div class="card" style="padding:30px; border-radius:28px;">
+            <div style="display:flex; gap:14px;">
+                <div style="width:48px; height:48px; border-radius:50%; background:#fff0f3; display:flex; align-items:center; justify-content:center;">
+                    💬
+                </div>
+
+                <div style="flex:1;">
+                    <strong>@(Model.Autor?.Email ?? Model.Autor?.UserName ?? "Nepoznat korisnik")</strong>
+
+                    <p style="color:#8a8a8a; font-size:14px;">
+                        @Model.DatumKomentara.ToString("dd.MM.yyyy HH:mm")
+                    </p>
+
+                    <p style="font-size:18px; color:#444;">
+                        @Model.Tekst
+                    </p>
+
+                    <span class="badge">@Model.StatusKomentara</span>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:28px;">
+                <a class="btn-dark" asp-action="Index">Nazad</a>
+                <a class="btn-pink" asp-action="Edit" asp-route-id="@Model.KomentarId">Uredi</a>
+            </div>
+        </div>
+    </div>
+</section>
