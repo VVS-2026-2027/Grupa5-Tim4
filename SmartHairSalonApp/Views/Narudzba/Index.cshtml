@@ -1,0 +1,233 @@
+﻿@model IEnumerable<SmartHairSalonApp.Models.Narudzba>
+
+@{
+    ViewData["Title"] = "Spisak Narudžbi";
+    bool jeZaposlenik = User.IsInRole("zaposlenik") || User.IsInRole("Zaposlenik");
+    bool jeAdmin = User.IsInRole("admin") || User.IsInRole("Admin");
+    bool jeSalonOsoblje = jeZaposlenik || jeAdmin;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<div class="container my-5" style="min-height: 75vh;">
+    <div class="mb-5 pb-3 border-bottom border-light">
+        <span class="text-uppercase tracking-widest text-gold fw-bold small d-block mb-2">Kérastase E-Shop</span>
+        <h2 style="font-family: 'Playfair Display', serif;" class="fw-bold text-uppercase tracking-wide text-dark m-0">
+            @if (jeZaposlenik)
+            {
+                <text>Upravljanje Narudžbama (Zaposlenik Panel)</text>
+            }
+            else if (jeAdmin)
+            {
+                <text>Upravljanje Narudžbama (Admin Panel)</text>
+            }
+            else
+            {
+                <text>Moje Narudžbe</text>
+            }
+        </h2>
+        <p class="text-muted small text-uppercase tracking-wider m-0 mt-1">Praćenje i ažuriranje statusa naručenih Kérastase proizvoda.</p>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div style="height: 4px; background: linear-gradient(90deg, #D4AF37 0%, #F3E5AB 100%);"></div>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 custom-table">
+                <thead class="table-light text-uppercase tracking-wider small">
+                    <tr>
+                        <th class="py-3 px-4">ID Narudžbe</th>
+                        @if (jeSalonOsoblje)
+                        {
+                            <th class="py-3 px-4">Klijent</th>
+                        }
+                        <th class="py-3 px-4">Ukupna Cijena</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4 text-end pe-4">Akcija / Pravo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="bi bi-box-seam text-muted mb-2 d-block" style="font-size: 2.5rem;"></i>
+                                <span class="text-muted text-uppercase tracking-wider small">Trenutno nema narudžbi u bazi.</span>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="py-3 px-4 fw-bold text-dark">#@item.Id</td>
+                            @if (jeSalonOsoblje)
+                            {
+                                <td class="py-3 px-4 text-muted small">@(item.Korisnik?.Email ?? "Gost")</td>
+                            }
+                            <td class="py-3 px-4 fw-bold text-dark" style="font-size: 1.05rem;">
+                                KM @(item.Korpa?.UkupnaCijena.ToString("F2") ?? "0.00")
+                            </td>
+                            <td class="py-3 px-4">
+                                <span id="status-badge-@item.Id" class="badge rounded-pill text-uppercase px-3 py-2 font-xs @(item.StatusNarudzbe == StatusNarudzbe.UObradi ? "bg-warning-light text-warning" : item.StatusNarudzbe == StatusNarudzbe.Potvrdjena ? "bg-success-light text-success" : "bg-danger-light text-danger")">
+                                    @(item.StatusNarudzbe == StatusNarudzbe.UObradi ? "U Obradi" : item.StatusNarudzbe == StatusNarudzbe.Potvrdjena ? "Potvrđena" : "Odbijena")
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 text-end pe-4">
+                                <div id="akcije-@item.Id" class="d-inline-flex gap-2">
+                                    @if (jeSalonOsoblje && item.StatusNarudzbe == StatusNarudzbe.UObradi)
+                                    {
+                                        <button onclick="procesuirajNarudzbu(@item.Id, 'Potvrdjena')" class="btn btn-dark btn-sm rounded-pill text-uppercase btn-premium-action px-3 shadow-sm">
+                                            <i class="bi bi-check2 me-1"></i> Potvrdi
+                                        </button>
+                                        <button onclick="procesuirajNarudzbu(@item.Id, 'Odbijena')" class="btn btn-outline-danger btn-sm rounded-pill text-uppercase font-xs fw-bold px-3">
+                                            <i class="bi bi-x-lg me-1"></i> Odbij
+                                        </button>
+                                    }
+                                    else if (jeSalonOsoblje && item.StatusNarudzbe != StatusNarudzbe.UObradi)
+                                    {
+                                        <span class="badge bg-light text-muted border border-light text-uppercase px-2 py-1 font-xs tracking-wide">
+                                            <i class="bi bi-check-all me-1"></i> Završeno
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small fst-italic">Bez akcija</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: #D4AF37 !important;
+    }
+
+    .tracking-wide {
+        letter-spacing: 0.05em;
+    }
+
+    .tracking-wider {
+        letter-spacing: 0.1em;
+    }
+
+    .tracking-widest {
+        letter-spacing: 0.2em;
+    }
+
+    .font-xs {
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    /* Stilovi za premium tabelu */
+    .custom-table th {
+        background-color: #fafafa;
+        border-bottom: 1px solid #f1f1ef;
+        padding: 16px 12px;
+        color: #666;
+        font-size: 0.75rem;
+    }
+
+    .custom-table td {
+        padding: 18px 12px;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    /* Elegantne pastelne pozadine za statuse */
+    .bg-success-light {
+        background-color: #ebfbee !important;
+    }
+
+    .bg-danger-light {
+        background-color: #fff5f5 !important;
+    }
+
+    .bg-warning-light {
+        background-color: #fff9db !important;
+    }
+
+    /* Dugmad za akciju */
+    .btn-premium-action {
+        background-color: #1a1a1a;
+        border: 1px solid #1a1a1a;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        transition: all 0.25s ease;
+    }
+
+        .btn-premium-action:hover {
+            background-color: #000000;
+            border-color: #D4AF37;
+            color: #D4AF37 !important;
+        }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function procesuirajNarudzbu(id, enumStatus) {
+        let naslov = enumStatus === 'Potvrdjena' ? 'Želite li potvrditi narudžbu?' : 'Želite li odbiti narudžbu?';
+        let tekst = enumStatus === 'Potvrdjena' ? 'Narudžba će biti označena kao Potvrđena i spremna za klijenta.' : 'Ova narudžba će biti trajno odbijena.';
+        let ikona = enumStatus === 'Potvrdjena' ? 'question' : 'warning';
+        let dugmeBoja = enumStatus === 'Potvrdjena' ? '#1a1a1a' : '#dc3545';
+
+        Swal.fire({
+        title: naslov,
+        text: tekst,
+        icon: ikona,
+        showCancelButton: true,
+        confirmButtonColor: dugmeBoja,
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: enumStatus === 'Potvrdjena' ? 'Da, potvrdi!' : 'Da, odbij!',
+        cancelButtonText: 'Odustani'
+        }).then((result) => {
+        if (result.isConfirmed) {
+        // Pozivamo tvoju novu akciju iz kontrolera bez osvježavanja stranice
+        fetch(`/Narudzba/PromijeniStatus?id=${id}&noviStatus=${enumStatus}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+        if (data.success) {
+        // 1. Sakrij gumbe za akciju i zamijeni ih oznakom "Završeno"
+        let akcijeDiv = document.getElementById(`akcije-${id}`);
+        if (akcijeDiv) {
+        akcijeDiv.innerHTML = `<span class="badge bg-light text-muted border border-light text-uppercase px-2 py-1 font-xs tracking-wide"><i class="bi bi-check-all me-1"></i> Završeno</span>`;
+        }
+
+        // 2. Dinamički ažuriraj stil i tekst statusne značke
+        let badge = document.getElementById(`status-badge-${id}`);
+        if (badge) {
+        if (enumStatus === 'Potvrdjena') {
+        badge.innerText = "Potvrđena";
+        badge.className = "badge rounded-pill text-uppercase px-3 py-2 font-xs bg-success-light text-success";
+        } else {
+        badge.innerText = "Odbijena";
+        badge.className = "badge rounded-pill text-uppercase px-3 py-2 font-xs bg-danger-light text-danger";
+        }
+        }
+
+        // 3. Iskočni prozor sa uspjehom
+        Swal.fire({
+        title: enumStatus === 'Potvrdjena' ? 'Uspješno potvrđeno!' : 'Narudžba odbijena!',
+        text: `Narudžba #${id} je uspješno procesuirana.`,
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+        });
+        }
+        })
+        .catch(err => {
+        console.error("Greška:", err);
+        Swal.fire('Greška', 'Došlo je do greške prilikom obrade narudžbe.', 'error');
+        });
+        }
+        });
+        }
+    </script>
+}

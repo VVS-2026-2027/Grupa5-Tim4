@@ -375,17 +375,15 @@ namespace SmartHairSalonApp.Data.Migrations
                     b.Property<int>("StatusRezervacije")
                         .HasColumnType("int");
 
-                    b.Property<int>("TerminId")
-                        .HasColumnType("int");
-
                     b.Property<int>("UslugaId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ZeljeniTermin")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("KorisnikId");
-
-                    b.HasIndex("TerminId");
 
                     b.HasIndex("UslugaId");
 
@@ -400,9 +398,15 @@ namespace SmartHairSalonApp.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("Lokacija")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<string>("Naziv")
                         .IsRequired()
@@ -415,36 +419,6 @@ namespace SmartHairSalonApp.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Salon", (string)null);
-                });
-
-            modelBuilder.Entity("SmartHairSalonApp.Models.Termin", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("KorisnikId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("SalonId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StatusTermina")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Vrijeme")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("KorisnikId");
-
-                    b.HasIndex("SalonId");
-
-                    b.ToTable("Termin", (string)null);
                 });
 
             modelBuilder.Entity("SmartHairSalonApp.Models.Usluga", b =>
@@ -591,12 +565,6 @@ namespace SmartHairSalonApp.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartHairSalonApp.Models.Termin", "Termin")
-                        .WithMany()
-                        .HasForeignKey("TerminId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("SmartHairSalonApp.Models.Usluga", "Usluga")
                         .WithMany()
                         .HasForeignKey("UslugaId")
@@ -605,28 +573,7 @@ namespace SmartHairSalonApp.Data.Migrations
 
                     b.Navigation("Korisnik");
 
-                    b.Navigation("Termin");
-
                     b.Navigation("Usluga");
-                });
-
-            modelBuilder.Entity("SmartHairSalonApp.Models.Termin", b =>
-                {
-                    b.HasOne("SmartHairSalonApp.Models.Korisnik", "Korisnik")
-                        .WithMany()
-                        .HasForeignKey("KorisnikId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SmartHairSalonApp.Models.Salon", "Salon")
-                        .WithMany()
-                        .HasForeignKey("SalonId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Korisnik");
-
-                    b.Navigation("Salon");
                 });
 
             modelBuilder.Entity("SmartHairSalonApp.Models.Usluga", b =>
