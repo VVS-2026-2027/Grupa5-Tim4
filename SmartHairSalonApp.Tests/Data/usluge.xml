@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<usluge>
+  <usluga naziv="Šišanje" cijena="15" />
+  <usluga naziv="Feniranje" cijena="20.5" />
+  <usluga naziv="Bojenje kose" cijena="60" />
+</usluge>

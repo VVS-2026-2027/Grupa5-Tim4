@@ -65,7 +65,7 @@ namespace SmartHairSalonApp.Tests.Controllers
             Assert.IsNotNull(view);
             var model = view.Model as List<Salon>;
             Assert.IsNotNull(model);
-            Assert.AreEqual(2, model.Count);
+            Assert.HasCount(2, model);
         }
 
         // ---------- Details ----------
