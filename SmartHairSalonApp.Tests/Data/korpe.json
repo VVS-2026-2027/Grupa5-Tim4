@@ -1,0 +1,8 @@
+[
+  { "opis": "2 komada, bez popusta", "stavke": [ { "cijena": 10, "kolicina": 2 } ], "ocekivaniTotal": 20 },
+  { "opis": "3 komada, popust 15%", "stavke": [ { "cijena": 10, "kolicina": 3 } ], "ocekivaniTotal": 25.5 },
+  { "opis": "5 komada, popust 15%", "stavke": [ { "cijena": 20, "kolicina": 5 } ], "ocekivaniTotal": 85 },
+  { "opis": "Preko 150 KM sa popustom", "stavke": [ { "cijena": 60, "kolicina": 3 } ], "ocekivaniTotal": 153 },
+  { "opis": "Jedan skup komad", "stavke": [ { "cijena": 160, "kolicina": 1 } ], "ocekivaniTotal": 160 },
+  { "opis": "Dva proizvoda, popust samo na prvi", "stavke": [ { "cijena": 10, "kolicina": 3 }, { "cijena": 20, "kolicina": 1 } ], "ocekivaniTotal": 45.5 }
+]
