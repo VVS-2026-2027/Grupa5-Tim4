@@ -1,0 +1,5 @@
+[
+  { "Naziv": "Salon Ljepota", "Lokacija": "Sarajevo", "RadnoVrijeme": "08:00-16:00" },
+  { "Naziv": "Hair Studio Mostar", "Lokacija": "Mostar", "RadnoVrijeme": "09:00-17:00" },
+  { "Naziv": "Frizerski salon Tuzla", "Lokacija": "Tuzla", "RadnoVrijeme": "10:00-18:00" }
+]

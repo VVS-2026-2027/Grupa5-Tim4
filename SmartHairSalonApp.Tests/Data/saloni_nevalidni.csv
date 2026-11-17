@@ -1,0 +1,4 @@
+Naziv;Lokacija;RadnoVrijeme;NevalidnoPolje
+;Sarajevo;08:00-16:00;Naziv
+Salon bez lokacije;;08:00-16:00;Lokacija
+Salon bez radnog vremena;Mostar;;RadnoVrijeme
