@@ -16,6 +16,7 @@ namespace SmartHairSalonApp.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<Korisnik> _userManager;
         private const string SessionKey = "MojaKorpa";
+        private const string PorukaNemaNaStanju = "Nema dovoljno proizvoda na stanju.";
 
         public ProizvodController(ApplicationDbContext context, UserManager<Korisnik> userManager)
         {
@@ -242,9 +243,10 @@ namespace SmartHairSalonApp.Controllers
             var korpa = DohvatiKorpuIzSesije();
             var stavka = korpa.FirstOrDefault(s => s.ProizvodId == id);
 
-            if (!SkladisteServis.MozeSeDodati(proizvod.Kolicina, stavka?.Kolicina ?? 0, 1))
+            int vecUKorpi = stavka?.Kolicina ?? 0;
+            if (!SkladisteServis.MozeSeDodati(proizvod.Kolicina, vecUKorpi, 1))
             {
-                return BadRequest("Nema dovoljno proizvoda na stanju.");
+                return BadRequest(PorukaNemaNaStanju);
             }
 
             if (stavka == null)
