@@ -26,14 +26,16 @@ namespace SmartHairSalonApp.Services
         public static List<string> NedostajuciProizvodi(
             List<StavkaKorpeViewModel> korpa, List<Proizvod> proizvodi)
         {
-            var nedostaju = new List<string>();
-            foreach (var stavka in korpa)
-            {
-                var proizvod = proizvodi.FirstOrDefault(p => p.Id == stavka.ProizvodId);
-                if (proizvod == null || stavka.Kolicina > proizvod.Kolicina)
-                    nedostaju.Add(stavka.Naziv);
-            }
-            return nedostaju;
+            return korpa
+                .Where(stavka => !ImaNaStanju(stavka, proizvodi))
+                .Select(stavka => stavka.Naziv)
+                .ToList();
+        }
+
+        private static bool ImaNaStanju(StavkaKorpeViewModel stavka, List<Proizvod> proizvodi)
+        {
+            var proizvod = proizvodi.FirstOrDefault(p => p.Id == stavka.ProizvodId);
+            return proizvod != null && stavka.Kolicina <= proizvod.Kolicina;
         }
     }
 }

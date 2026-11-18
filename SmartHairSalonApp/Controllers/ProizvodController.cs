@@ -17,6 +17,7 @@ namespace SmartHairSalonApp.Controllers
         private readonly UserManager<Korisnik> _userManager;
         private const string SessionKey = "MojaKorpa";
         private const string PorukaNemaNaStanju = "Nema dovoljno proizvoda na stanju.";
+        private const string PorukaNedostajuProizvodi = "Nema dovoljno na stanju: ";
 
         public ProizvodController(ApplicationDbContext context, UserManager<Korisnik> userManager)
         {
@@ -322,12 +323,12 @@ namespace SmartHairSalonApp.Controllers
                 return Json(new { success = false, message = "Vaša korpa je prazna." });
             }
 
-            // TDD GREEN: prije transakcije provjeravamo ima li dovoljno na stanju
+            // Provjera zalihe prije transakcije
             var proizvodiNaStanju = await _context.Proizvodi.AsNoTracking().ToListAsync();
             var nedostaju = SkladisteServis.NedostajuciProizvodi(sesijaKorpa, proizvodiNaStanju);
             if (nedostaju.Any())
             {
-                return Json(new { success = false, message = "Nema dovoljno na stanju: " + string.Join(", ", nedostaju) });
+                return Json(new { success = false, message = PorukaNedostajuProizvodi + string.Join(", ", nedostaju) });
             }
 
             var finalniObracun = PokreniAlgoritamObracuna(sesijaKorpa);
