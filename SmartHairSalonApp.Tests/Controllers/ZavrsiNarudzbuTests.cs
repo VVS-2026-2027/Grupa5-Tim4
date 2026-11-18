@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -34,6 +35,7 @@ namespace SmartHairSalonApp.Tests.Controllers
         private const double CijenaProizvoda = 20;
         private const int StanjeProizvoda = 10;
         private const int KomadaUKorpi = 2;
+        private const string KljucKorpe = "MojaKorpa";
 
         private DbContextOptions<ApplicationDbContext> _opcije = null!;
 
@@ -90,6 +92,16 @@ namespace SmartHairSalonApp.Tests.Controllers
         {
             kontroler.DodajUKorpu(proizvodId);
             kontroler.PromijeniKolicinu(proizvodId, komada - 1);
+        }
+
+        // Korpu postavljamo direktno u sesiju, jer DodajUKorpu vise ne dozvoljava vise komada nego sto ima na stanju.
+        private static void PostaviKorpu(TestSession sesija, int proizvodId, string naziv, int komada)
+        {
+            var korpa = new List<StavkaKorpeViewModel>
+            {
+                new StavkaKorpeViewModel { ProizvodId = proizvodId, Naziv = naziv, Cijena = CijenaProizvoda, Kolicina = komada }
+            };
+            sesija.SetString(KljucKorpe, JsonSerializer.Serialize(korpa));
         }
 
         // Za data driven test: proizvodi dobijaju Id 1, 2, ... a korpa se puni redom.
@@ -281,11 +293,11 @@ namespace SmartHairSalonApp.Tests.Controllers
             Assert.AreEqual(podaci.OcekivaniTotal, kontekst.Korpe.Single().UkupnaCijena, 0.001);
         }
 
-        // Proizvod je obrisan nakon dodavanja u korpu: narudzba se ipak zavrsava, nema se sta smanjiti.
-        // Korpu puni jedan kontroler, a narudzbu zavrsava drugi (sa istom sesijom) koji proizvod
-        // ne drzi u svom kontekstu, pa FindAsync zaista trazi proizvod u bazi.
+        // TDD: izmijenjen postojeci test. Proizvod obrisan nakon dodavanja u korpu se sada
+        // racuna kao "nedostaje", pa narudzba ne prolazi (ranije je vracala success = true).
+        // Korpu puni jedan kontroler, a narudzbu zavrsava drugi (sa istom sesijom).
         [TestMethod]
-        public async Task ZavrsiNarudzbu_ProizvodObrisanNakonDodavanjaUKorpu_VracaSuccessTrue()
+        public async Task ZavrsiNarudzbu_ProizvodObrisanNakonDodavanjaUKorpu_VracaSuccessFalseINistaNeSnima()
         {
             DodajProizvod(1);
             var (kontrolerZaKorpu, _) = NoviKontroler(Kupac());
@@ -298,7 +310,43 @@ namespace SmartHairSalonApp.Tests.Controllers
 
             var rezultat = await kontrolerZaNarudzbu.ZavrsiNarudzbu();
 
-            Assert.IsTrue(ProcitajJson(rezultat).GetProperty("success").GetBoolean());
+            var json = ProcitajJson(rezultat);
+            Assert.IsFalse(json.GetProperty("success").GetBoolean());
+            Assert.AreEqual("Nema dovoljno na stanju: Proizvod 1", json.GetProperty("message").GetString());
+            using var kontekst = TestDb.Kontekst(_opcije);
+            Assert.AreEqual(0, kontekst.Korpe.Count());
+            Assert.AreEqual(0, kontekst.Narudzbe.Count());
+        }
+
+        // ---------- ZavrsiNarudzbu: nema dovoljno na stanju (TDD Funkcionalnost 1, ciklus 2) ----------
+
+        [TestMethod]
+        public async Task ZavrsiNarudzbu_ViseNegoNaStanju_VracaSuccessFalseIPorukuSaNazivom()
+        {
+            DodajProizvod(1, CijenaProizvoda, 1);
+            var (kontroler, sesija) = NoviKontroler(Kupac());
+            PostaviKorpu(sesija, 1, "Proizvod 1", 2);
+
+            var rezultat = await kontroler.ZavrsiNarudzbu();
+
+            var json = ProcitajJson(rezultat);
+            Assert.IsFalse(json.GetProperty("success").GetBoolean());
+            Assert.AreEqual("Nema dovoljno na stanju: Proizvod 1", json.GetProperty("message").GetString());
+        }
+
+        [TestMethod]
+        public async Task ZavrsiNarudzbu_ViseNegoNaStanju_NistaNeSnimaUBazu()
+        {
+            DodajProizvod(1, CijenaProizvoda, 1);
+            var (kontroler, sesija) = NoviKontroler(Kupac());
+            PostaviKorpu(sesija, 1, "Proizvod 1", 2);
+
+            await kontroler.ZavrsiNarudzbu();
+
+            using var kontekst = TestDb.Kontekst(_opcije);
+            Assert.AreEqual(0, kontekst.Korpe.Count());
+            Assert.AreEqual(0, kontekst.Narudzbe.Count());
+            Assert.AreEqual(1, kontekst.Proizvodi.Single().Kolicina);
         }
 
         // ---------- ZavrsiNarudzbu: Moq (zamjenski objekat za bazu) ----------

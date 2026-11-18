@@ -322,6 +322,14 @@ namespace SmartHairSalonApp.Controllers
                 return Json(new { success = false, message = "Vaša korpa je prazna." });
             }
 
+            // TDD GREEN: prije transakcije provjeravamo ima li dovoljno na stanju
+            var proizvodiNaStanju = await _context.Proizvodi.AsNoTracking().ToListAsync();
+            var nedostaju = SkladisteServis.NedostajuciProizvodi(sesijaKorpa, proizvodiNaStanju);
+            if (nedostaju.Any())
+            {
+                return Json(new { success = false, message = "Nema dovoljno na stanju: " + string.Join(", ", nedostaju) });
+            }
+
             var finalniObracun = PokreniAlgoritamObracuna(sesijaKorpa);
             double ukupnaCijena = finalniObracun.Total;
 
