@@ -14,6 +14,10 @@ namespace SmartHairSalonApp.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<Korisnik> _userManager;
 
+        private const string GreskaFormat = "Termin mora biti u formatu dd.MM.yyyy u HH:mm.";
+        private const string GreskaProslost = "Termin mora biti u budućnosti.";
+        private const string GreskaZauzet = "Termin je već zauzet.";
+
         public RezervacijaController(
             ApplicationDbContext context,
             UserManager<Korisnik> userManager)
@@ -77,11 +81,7 @@ namespace SmartHairSalonApp.Controllers
         [Authorize(Roles = "korisnik,admin,zaposlenik")]
         public IActionResult Create()
         {
-            ViewData["UslugaId"] = new SelectList(
-                _context.Usluge,
-                "Id",
-                "Naziv");
-
+            PostaviListuUsluga();
             return View();
         }
 
@@ -96,20 +96,16 @@ namespace SmartHairSalonApp.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // TDD ciklus 4: provjera termina prije snimanja
+            // Provjera termina prije snimanja (TDD, ciklus 4)
             var termin = TerminServis.Parsiraj(rezervacija.ZeljeniTermin);
             if (termin == null)
             {
-                ModelState.AddModelError("ZeljeniTermin", "Termin mora biti u formatu dd.MM.yyyy u HH:mm.");
-                ViewData["UslugaId"] = new SelectList(_context.Usluge, "Id", "Naziv");
-                return View(rezervacija);
+                return FormaSaGreskomTermina(rezervacija, GreskaFormat);
             }
 
             if (!TerminServis.JeUBuducnosti(termin.Value, DateTime.Now))
             {
-                ModelState.AddModelError("ZeljeniTermin", "Termin mora biti u budućnosti.");
-                ViewData["UslugaId"] = new SelectList(_context.Usluge, "Id", "Naziv");
-                return View(rezervacija);
+                return FormaSaGreskomTermina(rezervacija, GreskaProslost);
             }
 
             var rezervacijeZaUslugu = await _context.Rezervacije
@@ -117,9 +113,7 @@ namespace SmartHairSalonApp.Controllers
                 .ToListAsync();
             if (!TerminServis.JeSlobodan(rezervacijeZaUslugu, rezervacija.UslugaId, termin.Value))
             {
-                ModelState.AddModelError("ZeljeniTermin", "Termin je već zauzet.");
-                ViewData["UslugaId"] = new SelectList(_context.Usluge, "Id", "Naziv");
-                return View(rezervacija);
+                return FormaSaGreskomTermina(rezervacija, GreskaZauzet);
             }
 
             var korisnik = await _userManager.GetUserAsync(User);
@@ -130,13 +124,10 @@ namespace SmartHairSalonApp.Controllers
             _context.Rezervacije.Add(rezervacija);
             await _context.SaveChangesAsync();
 
-            // Pošto je ZeljeniTermin već string, samo provjeravamo da nije null
-            string terminTekst = rezervacija.ZeljeniTermin ?? "Nije odabran";
-
             // 🔥 IMPLEMENTACIJA OBAVIJESTI ZA ZAPOSLENIKE (Layout prepoznaje "SALON:")
             var obavijestZaOsoblje = new Obavijest
             {
-                Poruka = $"SALON: Novi zahtjev za termin od korisnika <b>{korisnik.UserName}</b> za {terminTekst}.",
+                Poruka = $"SALON: Novi zahtjev za termin od korisnika <b>{korisnik.UserName}</b> za {rezervacija.ZeljeniTermin}.",
                 Datum = DateTime.Now,
                 KorisnikId = korisnik.Id
             };
@@ -333,6 +324,20 @@ namespace SmartHairSalonApp.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // Lista usluga za padajuci meni na formi za rezervaciju
+        private void PostaviListuUsluga()
+        {
+            ViewData["UslugaId"] = new SelectList(_context.Usluge, "Id", "Naziv");
+        }
+
+        // Vraca formu za rezervaciju sa greskom na polju ZeljeniTermin; nista se ne snima
+        private IActionResult FormaSaGreskomTermina(Rezervacija rezervacija, string greska)
+        {
+            ModelState.AddModelError(nameof(Rezervacija.ZeljeniTermin), greska);
+            PostaviListuUsluga();
+            return View(rezervacija);
         }
 
         private bool RezervacijaExists(int id)
