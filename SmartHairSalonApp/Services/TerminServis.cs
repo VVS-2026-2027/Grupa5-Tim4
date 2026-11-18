@@ -1,4 +1,5 @@
 using System.Globalization;
+using SmartHairSalonApp.Models;
 
 namespace SmartHairSalonApp.Services
 {
@@ -26,5 +27,22 @@ namespace SmartHairSalonApp.Services
 
         /// <summary>Termin je u buducnosti samo ako je poslije trenutka "sada".</summary>
         public static bool JeUBuducnosti(DateTime termin, DateTime sada) => termin > sada;
+
+        /// <summary>Termin je slobodan ako za istu uslugu u isto vrijeme nema rezervacije koja je u obradi ili potvrdjena.</summary>
+        public static bool JeSlobodan(List<Rezervacija> rezervacije, int uslugaId, DateTime termin)
+        {
+            foreach (var rezervacija in rezervacije)
+            {
+                if (rezervacija.UslugaId == uslugaId
+                    && Parsiraj(rezervacija.ZeljeniTermin) == termin
+                    && (rezervacija.StatusRezervacije == StatusRezervacije.UObradi
+                        || rezervacija.StatusRezervacije == StatusRezervacije.Potvrdjena))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

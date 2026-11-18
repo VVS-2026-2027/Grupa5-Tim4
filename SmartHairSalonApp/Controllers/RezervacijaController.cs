@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartHairSalonApp.Data;
 using SmartHairSalonApp.Models;
+using SmartHairSalonApp.Services;
 
 namespace SmartHairSalonApp.Controllers
 {
@@ -93,6 +94,32 @@ namespace SmartHairSalonApp.Controllers
             if (User.IsInRole("admin") || User.IsInRole("zaposlenik"))
             {
                 return RedirectToAction("Index", "Home");
+            }
+
+            // TDD ciklus 4: provjera termina prije snimanja
+            var termin = TerminServis.Parsiraj(rezervacija.ZeljeniTermin);
+            if (termin == null)
+            {
+                ModelState.AddModelError("ZeljeniTermin", "Termin mora biti u formatu dd.MM.yyyy u HH:mm.");
+                ViewData["UslugaId"] = new SelectList(_context.Usluge, "Id", "Naziv");
+                return View(rezervacija);
+            }
+
+            if (!TerminServis.JeUBuducnosti(termin.Value, DateTime.Now))
+            {
+                ModelState.AddModelError("ZeljeniTermin", "Termin mora biti u budućnosti.");
+                ViewData["UslugaId"] = new SelectList(_context.Usluge, "Id", "Naziv");
+                return View(rezervacija);
+            }
+
+            var rezervacijeZaUslugu = await _context.Rezervacije
+                .Where(r => r.UslugaId == rezervacija.UslugaId)
+                .ToListAsync();
+            if (!TerminServis.JeSlobodan(rezervacijeZaUslugu, rezervacija.UslugaId, termin.Value))
+            {
+                ModelState.AddModelError("ZeljeniTermin", "Termin je već zauzet.");
+                ViewData["UslugaId"] = new SelectList(_context.Usluge, "Id", "Naziv");
+                return View(rezervacija);
             }
 
             var korisnik = await _userManager.GetUserAsync(User);
