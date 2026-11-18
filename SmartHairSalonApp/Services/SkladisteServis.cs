@@ -1,20 +1,19 @@
 namespace SmartHairSalonApp.Services
 {
+    /// <summary>
+    /// Provjere stanja proizvoda na skladistu (zalihe) za korpu i narudzbu.
+    /// </summary>
     public static class SkladisteServis
     {
+        /// <summary>
+        /// Da li se u korpu moze dodati jos "kolicina" komada,
+        /// a da ukupno u korpi ne bude vise nego sto ima na stanju.
+        /// </summary>
         public static bool MozeSeDodati(int naStanju, int vecUKorpi, int kolicina)
         {
-            if (kolicina <= 0)
-            {
-                throw new ArgumentOutOfRangeException("kolicina");
-            }
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(kolicina);
 
-            if (vecUKorpi + kolicina > naStanju)
-            {
-                return false;
-            }
-
-            return true;
+            return vecUKorpi + kolicina <= naStanju;
         }
     }
 }
