@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartHairSalonApp.Data;
 using SmartHairSalonApp.Models;
+using SmartHairSalonApp.Services;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization; // 🔥 Dodano za zaključavanje pojedinačnih akcija
 
@@ -240,6 +241,11 @@ namespace SmartHairSalonApp.Controllers
 
             var korpa = DohvatiKorpuIzSesije();
             var stavka = korpa.FirstOrDefault(s => s.ProizvodId == id);
+
+            if (!SkladisteServis.MozeSeDodati(proizvod.Kolicina, stavka?.Kolicina ?? 0, 1))
+            {
+                return BadRequest("Nema dovoljno proizvoda na stanju.");
+            }
 
             if (stavka == null)
             {
