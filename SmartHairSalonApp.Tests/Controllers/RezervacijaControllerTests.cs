@@ -174,12 +174,15 @@ namespace SmartHairSalonApp.Tests.Controllers
 
         // ---------- Create (POST) ----------
 
+        // Ispravan termin u buducnosti (format "dd.MM.yyyy u HH:mm")
+        private const string IspravanTermin = "15.06.2030 u 14:00";
+
         [TestMethod]
         [DataRow("admin")]
         [DataRow("zaposlenik")]
         public async Task Create_Post_AdminIliZaposlenik_PreusmjeravaNaHomeINistaNeSprema(string uloga)
         {
-            var rezultat = await NoviKontroler(uloga).Create(new Rezervacija { UslugaId = 1, ZeljeniTermin = "20.11. u 10:00" });
+            var rezultat = await NoviKontroler(uloga).Create(new Rezervacija { UslugaId = 1, ZeljeniTermin = IspravanTermin });
 
             var redirect = rezultat as RedirectToActionResult;
             Assert.IsNotNull(redirect);
@@ -193,7 +196,7 @@ namespace SmartHairSalonApp.Tests.Controllers
         [TestMethod]
         public async Task Create_Post_Korisnik_SpremaRezervacijuUObradiIObavijestZaSalon()
         {
-            var rezultat = await NoviKontroler("korisnik").Create(new Rezervacija { UslugaId = 1, ZeljeniTermin = "20.11. u 10:00" });
+            var rezultat = await NoviKontroler("korisnik").Create(new Rezervacija { UslugaId = 1, ZeljeniTermin = IspravanTermin });
 
             var redirect = rezultat as RedirectToActionResult;
             Assert.IsNotNull(redirect);
@@ -206,18 +209,70 @@ namespace SmartHairSalonApp.Tests.Controllers
 
             var obavijest = kontekst.Obavijesti.Single();
             Assert.IsTrue(obavijest.Poruka.StartsWith("SALON:"));
-            Assert.IsTrue(obavijest.Poruka.Contains("20.11. u 10:00"));
+            Assert.IsTrue(obavijest.Poruka.Contains(IspravanTermin));
 
             _userManager.Verify(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
         }
 
-        [TestMethod]
-        public async Task Create_Post_TerminJeNull_PorukaSadrziNijeOdabran()
-        {
-            await NoviKontroler("korisnik").Create(new Rezervacija { UslugaId = 1, ZeljeniTermin = null });
+        // ---------- Create (POST): provjera termina (TDD, ciklus 4) ----------
 
-            var obavijest = Obavijesti().Single();
-            Assert.IsTrue(obavijest.Poruka.Contains("Nije odabran"));
+        // Pomocna provjera: vraca se forma sa listom usluga, greska je na polju ZeljeniTermin i nista nije snimljeno
+        private void ProvjeriFormuSaGreskom(IActionResult rezultat, RezervacijaController kontroler,
+            string ocekivanaGreska, int ocekivaniBrojRezervacija = 0)
+        {
+            var view = rezultat as ViewResult;
+            Assert.IsNotNull(view);
+            Assert.IsInstanceOfType(view.ViewData["UslugaId"], typeof(SelectList));
+            Assert.AreEqual(ocekivanaGreska, kontroler.ModelState["ZeljeniTermin"]!.Errors[0].ErrorMessage);
+            Assert.AreEqual(ocekivaniBrojRezervacija, BrojRezervacija());
+            Assert.AreEqual(0, Obavijesti().Count);
+        }
+
+        [TestMethod]
+        [DataRow((string?)null)]
+        [DataRow("")]
+        [DataRow("sutra u 10")]
+        [DataRow("20.11. u 10:00")]
+        [DataRow("31.02.2030 u 10:00")]
+        public async Task Create_Post_NeispravanFormatTermina_VracaFormuSaGreskom(string? termin)
+        {
+            var kontroler = NoviKontroler("korisnik");
+
+            var rezultat = await kontroler.Create(new Rezervacija { UslugaId = 1, ZeljeniTermin = termin });
+
+            ProvjeriFormuSaGreskom(rezultat, kontroler, "Termin mora biti u formatu dd.MM.yyyy u HH:mm.");
+        }
+
+        [TestMethod]
+        public async Task Create_Post_TerminUProslosti_VracaFormuSaGreskom()
+        {
+            var kontroler = NoviKontroler("korisnik");
+
+            var rezultat = await kontroler.Create(new Rezervacija { UslugaId = 1, ZeljeniTermin = "15.06.2020 u 14:00" });
+
+            ProvjeriFormuSaGreskom(rezultat, kontroler, "Termin mora biti u budućnosti.");
+        }
+
+        [TestMethod]
+        public async Task Create_Post_TerminVecZauzetZaIstuUslugu_VracaFormuSaGreskom()
+        {
+            DodajRezervaciju(1, "k2", StatusRezervacije.Potvrdjena, IspravanTermin);
+            var kontroler = NoviKontroler("korisnik");
+
+            var rezultat = await kontroler.Create(new Rezervacija { UslugaId = 1, ZeljeniTermin = IspravanTermin });
+
+            ProvjeriFormuSaGreskom(rezultat, kontroler, "Termin je već zauzet.", ocekivaniBrojRezervacija: 1);
+        }
+
+        [TestMethod]
+        public async Task Create_Post_IstiTerminAliOdbijenaRezervacija_SpremaNovuRezervaciju()
+        {
+            DodajRezervaciju(1, "k2", StatusRezervacije.Odbijena, IspravanTermin);
+
+            var rezultat = await NoviKontroler("korisnik").Create(new Rezervacija { UslugaId = 1, ZeljeniTermin = IspravanTermin });
+
+            Assert.IsInstanceOfType(rezultat, typeof(RedirectToActionResult));
+            Assert.AreEqual(2, BrojRezervacija());
         }
 
         // ---------- Prihvati / Odbij ----------
