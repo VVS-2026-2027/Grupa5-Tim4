@@ -65,6 +65,26 @@ namespace SmartHairSalonApp.Tests.Controllers
             Assert.AreEqual(JsonValueKind.Array, saloni.ValueKind);
             Assert.AreEqual(brojSalona, saloni.GetArrayLength());
         }
+        // Data driven test: podaci su zadani direktno u testnoj klasi, bez vanjskog fajla
+        public static IEnumerable<object?[]> SaloniIzKoda => new List<object?[]>
+        {
+            new object?[] { "Salon Ljepota", 43.8563, 18.4131 },
+            new object?[] { "Hair Studio Mostar", 43.3438, 17.8078 },
+            new object?[] { "Salon bez mape", null, null }
+        };
+        
+        [TestMethod]
+        [DynamicData(nameof(SaloniIzKoda))]
+        public async Task GetSalone_SalonIzKoda_VracaNazivIKoordinate(string naziv, double? latitude, double? longitude)
+        {
+            DodajSalon(1, naziv, latitude, longitude);
+
+            var salon = (await PozoviApi())[0];
+
+            Assert.AreEqual(naziv, salon.GetProperty("Naziv").GetString());
+            Assert.AreEqual(JsonSerializer.Serialize(latitude), salon.GetProperty("Latitude").GetRawText());
+            Assert.AreEqual(JsonSerializer.Serialize(longitude), salon.GetProperty("Longitude").GetRawText());
+        }
 
         [TestMethod]
         public async Task GetSalone_SalonSaKoordinatama_VracaSvaPolja()
