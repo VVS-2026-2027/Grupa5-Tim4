@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Postavke za mjerenje pokrivenosti koda (Task 2).
+  Mjeri se samo glavni projekat SmartHairSalonApp, bez:
+    - test projekta,
+    - Migrations (automatski generisan kod),
+    - Areas/Identity (stranice za prijavu i registraciju iz ASP.NET Identity),
+    - Program.cs (konfiguracija pokretanja aplikacije),
+    - pogleda (.cshtml / AspNetCoreGeneratedDocument).
+  U Visual Studiju: Test > Configure Run Settings > Select Solution Wide runsettings File > ovaj fajl.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage">
+        <Configuration>
+          <CodeCoverage>
+            <ModulePaths>
+              <Include>
+                <ModulePath>.*SmartHairSalonApp\.dll$</ModulePath>
+              </Include>
+              <Exclude>
+                <ModulePath>.*\.Tests\.dll$</ModulePath>
+              </Exclude>
+            </ModulePaths>
+            <Functions>
+              <Exclude>
+                <Function>^SmartHairSalonApp\.Migrations\..*</Function>
+                <Function>^SmartHairSalonApp\.Areas\..*</Function>
+                <Function>^AspNetCoreGeneratedDocument\..*</Function>
+                <Function>^Program\..*</Function>
+              </Exclude>
+            </Functions>
+            <Sources>
+              <Exclude>
+                <Source>.*\\Migrations\\.*</Source>
+                <Source>.*\\Areas\\.*</Source>
+                <Source>.*\\Program\.cs$</Source>
+                <Source>.*\.cshtml$</Source>
+              </Exclude>
+            </Sources>
+            <Attributes>
+              <Exclude>
+                <Attribute>^System\.Diagnostics\.CodeAnalysis\.ExcludeFromCodeCoverageAttribute$</Attribute>
+                <Attribute>^System\.CodeDom\.Compiler\.GeneratedCodeAttribute$</Attribute>
+              </Exclude>
+            </Attributes>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
